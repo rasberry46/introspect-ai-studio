@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Introspect AI Studio — Graph</title>
+
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+      padding: 20px;
+    }
+
+    #cy {
+      width: 100%;
+      height: 600px;
+      background: #1e293b;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px;
+      background: #22c55e;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🧠 Fraud Graph Visualization</h1>
+
+<input type="file" id="file">
+<button onclick="upload()">Upload CSV</button>
+
+<div id="cy"></div>
+
+<script>
+async function upload() {
+  const file = document.getElementById("file").files[0];
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch("http://127.0.0.1:8000/upload-csv", {
+    method: "POST",
+    body: form
+  });
+
+  const data = await res.json();
+
+  renderGraph(data);
+}
+
+function renderGraph(data) {
+  const cy = cytoscape({
+    container: document.getElementById('cy'),
+
+    elements: [
+      ...data.nodes.map(n => ({ data: { id: n.id, label: n.label } })),
+      ...data.edges.map(e => ({ data: { source: e.source, target: e.target } }))
+    ],
+
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'label': 'data(label)',
+          'background-color': '#22c55e',
+          'color': '#fff'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 2,
+          'line-color': '#94a3b8'
+        }
+      }
+    ],
+
+    layout: {
+      name: 'cose'
+    }
+  });
+
+  cy.on('tap', 'node', function(evt) {
+    alert("Clicked node: " + evt.target.id());
+  });
+}
+</script>
+
+</body>
+</html>
